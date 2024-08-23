@@ -28,6 +28,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'common.apps.CommonConfig',
     'user_control.apps.UserControlConfig',
+    'workspace_control.apps.WorkspaceControlConfig',
+    'board_control.apps.BoardControlConfig',
 
     # Third Party
     'rest_framework',
@@ -228,11 +230,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configure Django Jazzmin
 JAZZMIN_SETTINGS = {
-    'site_title': 'Tiger11',
-    'site_header': 'Tiger11',
-    # 'site_logo': 'https://www.tiger11.pro/static/media/logo.8af75a0c29cf776d4b1f.png',
-    'welcome_sign': 'Welcome to Tiger11',
-    # 'search_model': 'auth.User',
+    'site_title': 'Trello',
+    'site_header': 'Trello',
+    'welcome_sign': 'Welcome to Trello',
     'user_avatar': None,
     # 'topmenu_links': [
     #     {'name': 'Home', 'url': 'admin:index', 'permissions': ['auth.view_user']},
@@ -246,7 +246,7 @@ JAZZMIN_SETTINGS = {
     'custom_css': None,
     'custom_js': None,
     'show_drug_title': True,
-    'drug_title': 'Tiger11',
+    'drug_title': 'Trello',
     'site_url': 'https://api.tiger11.pro/',
     'show_full_screen': True,
     # 'changeform_format': 'horizontal_tabs',
@@ -255,7 +255,6 @@ JAZZMIN_SETTINGS = {
     # },
     'theme': 'default',
     'icon_theme': 'default',
-    # 'favicon': 'https://www.tiger11.pro/static/media/logo.8af75a0c29cf776d4b1f.png',
     'default_icon_parents': 'fas fa-fw fa-folder',
     'default_icon_children': 'fas fa-fw fa-file',
 }

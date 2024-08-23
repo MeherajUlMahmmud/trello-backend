@@ -6,7 +6,6 @@ from rest_framework.serializers import (
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from common.choices import AuthProviderChoices
 from user_control.models import UserModel
 
 
@@ -70,8 +69,6 @@ class LoginSerializer(Serializer):
 
             if not user:
                 raise AuthenticationFailed('Invalid credentials, try again')
-            if user and user.auth_provider == AuthProviderChoices.GOOGLE:
-                raise AuthenticationFailed('Please login using Google')
             if not user.is_active:
                 raise AuthenticationFailed('Account disabled, contact admin')
             # if not user.is_verified:

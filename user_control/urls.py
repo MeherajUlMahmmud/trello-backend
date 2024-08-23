@@ -2,8 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from user_control.views.auth import (
-    LoginAPIView, LogoutAPIView, PasswordChangeAPIView, PasswordResetAPIView, RegisterAPIView,
-    RequestPasswordResetAPIView,
+    LoginAPIView, LogoutAPIView, PasswordChangeAPIView, PasswordResetAPIView, RegisterAPIView, RequestPasswordResetAPIView,
 )
 from user_control.views.user import (
     GetUserListAPIView, CreateUserAPIView, GetUserDetailsAPIView, UpdateUserDetailsAPIView, GetUserProfileAPIView,

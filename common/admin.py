@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
 from common.models import BaseModel, ContactUsModel, RequestLog
@@ -46,12 +45,10 @@ class RawIdFieldsAdmin(admin.ModelAdmin):
             IS_DELETED = ['is_deleted']
             timestamp_fields = CREATED_AT + UPDATED_AT
             status_fields = IS_ACTIVE + IS_DELETED
-            self.list_display = [primary_key] + \
-                list(self.list_display) + CREATED_AT + IS_ACTIVE
+            self.list_display = [primary_key] + list(self.list_display) + CREATED_AT + IS_ACTIVE
             self.readonly_fields = list(
                 self.readonly_fields) + timestamp_fields
-            self.list_filter = list(self.list_filter) + \
-                CREATED_AT + status_fields
+            self.list_filter = list(self.list_filter) + CREATED_AT + status_fields
             self.list_per_page = 100
 
 

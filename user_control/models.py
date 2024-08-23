@@ -6,9 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from common.choices import AuthProviderChoices
 from common.models import BaseModel
-from user_control.utils import Util
 
 logger = logging.getLogger(__name__)
 
@@ -107,13 +105,12 @@ class UserModel(AbstractBaseUser, BaseModel, PermissionsMixin):
             'access': str(tokens.access_token),
         }
 
-    @staticmethod
-    def check_object_permissions(request, obj):
-        if request.user.is_superuser:
+    def check_object_permissions(self, obj):
+        if self.is_superuser:
             return True
-        if request.user.is_staff:
+        if self.is_staff:
             return True
-        if request.user == obj.created_by:
+        if self == obj.created_by:
             return True
         return False
 

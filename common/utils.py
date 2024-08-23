@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import uuid
 from datetime import datetime
@@ -12,6 +13,20 @@ def format_time(time_str):
         return dt.strftime('%Y-%m-%d %H:%M:%S')
     except ValueError:
         return time_str
+
+
+def generate_uuid():
+    # create a random unique code combining letters and numbers
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    numbers = '0123456789'
+    uuid = ''
+    for i in range(8):
+        if i % 2 == 0:
+            uuid += letters[random.randint(0, 25)]
+        else:
+            uuid += numbers[random.randint(0, 9)]
+
+    return uuid
 
 
 def read_log_file(file_path, lines=100, trace_id=None, level=''):
@@ -82,7 +97,6 @@ def save_picture_to_folder(picture_file, folder_name):
 
     # Return the file path
     return file_url
-
 
 # Ensure you have the required AWS settings in your Django settings file
 # AWS_ACCESS_KEY_ID = 'your-access-key-id'

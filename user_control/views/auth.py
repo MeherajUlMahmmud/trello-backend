@@ -28,10 +28,9 @@ from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from common.choices import AuthProviderChoices
 from user_control.models import UserModel
 from user_control.serializers.auth import (
-    GoogleLoginSerializer, RegisterSerializer, EmailVerificationSerializer, LoginSerializer,
+    RegisterSerializer, EmailVerificationSerializer, LoginSerializer,
     ResendVerificationEmailSerializer, LogoutSerializer, ResetPasswordRequestSerializer, SetNewPasswordSerializer,
 )
 from user_control.serializers.user import UserModelSerializer
@@ -213,7 +212,6 @@ class LoginAPIView(GenericAPIView):
             logger.info(
                 f'User {user.email} found, updating last login time and user country.')
             user.update_last_login()
-            user.update_user_country(request)
 
             logger.info(f'User {user.email} logged in successfully.')
             user_data = UserModelSerializer.List(user).data

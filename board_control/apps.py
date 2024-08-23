@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ProjectControlConfig(AppConfig):
+class BoardControlConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'project_control'
+    name = 'board_control'

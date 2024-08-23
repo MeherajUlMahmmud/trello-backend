@@ -1,0 +1,230 @@
+this is my model
+class UserModel(AbstractBaseUser, BaseModel, PermissionsMixin):
+    email = models.EmailField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    profile_picture = models.TextField(null=True, blank=True)
+    phone_number = models.CharField(max_length=255, null=True, blank=True)
+    country = models.ForeignKey(
+        'team_control.CountryModel', related_name='user_country',
+        on_delete=models.SET_NULL, null=True, blank=True,
+    )
+    otp = models.CharField(max_length=6, null=True, blank=True)
+    otp_expiry = models.DateTimeField(null=True, blank=True)
+    reset_password_token = models.CharField(
+        max_length=255, null=True, blank=True,
+        help_text='This token is used to reset the password',
+    )
+    reset_password_token_expiry = models.DateTimeField(null=True, blank=True)
+    auth_provider = models.CharField(
+        max_length=255, choices=AuthProviderChoices.choices,
+        default=AuthProviderChoices.EMAIL_PASS,
+    )
+    is_verified = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+
+
+this is the view file for the model
+class GetUserListAPIView(CustomListAPIView):
+    queryset = UserModel.objects.filter(is_active=True, is_deleted=False)
+    permission_classes = [AdminOrStaffUserPermission]
+    serializer_class = UserModelSerializer.List
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filterset_class = UserModelFilter
+    search_fields = ['email', 'first_name', 'last_name']
+
+
+class GetUserDetailsAPIView(CustomRetrieveAPIView):
+    queryset = UserModel.objects.filter(is_active=True, is_deleted=False)
+    serializer_class = UserModelSerializer.List
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        requested_user = request.user
+
+        if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
+            return Response({
+                'detail': 'You don\'t have permission to perform this action.'
+            }, status=HTTP_403_FORBIDDEN)
+
+        serializer = UserModelSerializer.List(instance)
+        return Response({
+            'data': serializer.data,
+        }, status=HTTP_200_OK)
+
+
+class CreateUserAPIView(CustomCreateAPIView):
+    permission_classes = (AdminOrStaffUserPermission,)
+    queryset = UserModel.objects.filter(is_active=True, is_deleted=False)
+    serializer_class = UserModelSerializer.Write
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        password = validated_data['password']
+
+        user = UserModel.objects.create(
+            created_by=request.user,
+            **validated_data
+        )
+        user.set_password(password)
+        user.save()
+
+        return Response({
+            'message': 'User created successfully.',
+        }, status=HTTP_201_CREATED)
+
+
+class UpdateUserDetailsAPIView(CustomUpdateAPIView):
+    queryset = UserModel.objects.filter(is_active=True, is_deleted=False)
+    serializer_class = UserModelSerializer.Write
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        requested_user = request.user
+        if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
+            return Response({
+                'message': 'You don\'t have permission to perform this action.'
+            }, status=HTTP_403_FORBIDDEN)
+
+        serializer = self.serializer_class(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            updated_by=request.user,
+        )
+        return Response(serializer.data, status=HTTP_200_OK)
+
+and this is the serializer file for the model
+class UserModelSerializerMeta(ModelSerializer):
+    class Meta:
+        model = UserModel
+        ref_name = 'UserModelSerializer'
+        fields = [
+            'email',
+            'first_name',
+            'last_name',
+            'auth_provider',
+            'is_verified',
+            'is_staff',
+            'is_superuser',
+        ]
+
+
+class UserModelSerializer:
+    class List(UserModelSerializerMeta):
+        country = CountryModelSerializer.List(read_only=True)
+
+        class Meta(UserModelSerializerMeta.Meta):
+            fields = UserModelSerializerMeta.Meta.fields + [
+                'id',
+                'profile_picture',
+                'country',
+            ]
+
+    class Lite(UserModelSerializerMeta):
+        class Meta(UserModelSerializerMeta.Meta):
+            fields = UserModelSerializerMeta.Meta.fields + [
+                'id',
+                'first_name',
+                'last_name',
+            ]
+
+    class Write(UserModelSerializerMeta):
+        first_name = CharField(write_only=True, required=True, )
+        last_name = CharField(write_only=True, required=True, )
+        password = CharField(write_only=True, required=True)
+
+        class Meta(UserModelSerializerMeta.Meta):
+            fields = UserModelSerializerMeta.Meta.fields + [
+                'password',
+            ]
+
+
+now write the view files and serializer files following the similar pattern for these models
+
+class WorkspaceModel(BaseModel):
+    uuid = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'workspace'
+        verbose_name = 'Workspace'
+        verbose_name_plural = 'Workspaces'
+
+    def __str__(self):
+        return self.title
+
+
+class WorkspaceMemberModel(BaseModel):
+    workspace = models.ForeignKey(WorkspaceModel, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    role = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'workspace_member'
+        verbose_name = 'Workspace Member'
+        verbose_name_plural = 'Workspace Members'
+
+    def __str__(self):
+        return f'{self.workspace.name} - {self.user.username}'
+
+
+class ProjectModel(BaseModel):
+    uuid = models.CharField(max_length=255, unique=True)
+    workspace = models.ForeignKey(WorkspaceModel, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'project'
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
+
+    def __str__(self):
+        return self.title
+
+
+class BoardModel(BaseModel):
+    project = models.ForeignKey(ProjectModel, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'card_list'
+        verbose_name = 'Card List'
+        verbose_name_plural = 'Card Lists'
+
+    def __str__(self):
+        return self.title
+
+
+class CardModel(BaseModel):
+    card_list = models.ForeignKey(BoardModel, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'card'
+        verbose_name = 'Card'
+        verbose_name_plural = 'Cards'
+
+    def __str__(self):
+        return self.title
+
+
+class CardAssignmentModel(BaseModel):
+    card = models.ForeignKey(CardModel, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'card_assignment'
+        verbose_name = 'Card Assignment'
+        verbose_name_plural = 'Card Assignments'
+
+    def __str__(self):
+        return f'{self.card.title} - {self.user.username}'

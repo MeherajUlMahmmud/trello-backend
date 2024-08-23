@@ -6,7 +6,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from base import settings
-from common.views import IndexView, LogAPIView
+from common.views import LogAPIView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -33,6 +33,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/logs/', LogAPIView.as_view(), name='log-api'),
     path('api/', include('user_control.urls')),
+    path('api/', include('workspace_control.urls')),
+    path('api/', include('board_control.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
@@ -41,5 +43,5 @@ if settings.DEBUG:
     import debug_toolbar
 
     urlpatterns += [
-        path(r'^__debug__/', include(debug_toolbar.urls)),
+        path('__debug__/', include(debug_toolbar.urls)),
     ]

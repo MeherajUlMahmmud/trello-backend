@@ -11,7 +11,6 @@ class UserModelSerializerMeta(ModelSerializer):
             'email',
             'first_name',
             'last_name',
-            'auth_provider',
             'is_verified',
             'is_staff',
             'is_superuser',
