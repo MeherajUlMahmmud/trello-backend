@@ -31,7 +31,7 @@ class GetUserDetailsAPIView(CustomRetrieveAPIView):
         requested_user = request.user
         if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
             return Response({
-                'detail': 'You don\'t have permission to perform this action.'
+                'detail': 'You do not have permission to perform this action'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = UserModelSerializer.List(instance)
@@ -41,6 +41,7 @@ class GetUserDetailsAPIView(CustomRetrieveAPIView):
 
 
 class GetUserProfileAPIView(CustomRetrieveAPIView):
+    serializer_class = UserModelSerializer.List
 
     def get(self, request, *args, **kwargs):
         instance = request.user

@@ -16,6 +16,15 @@ class GetWorkspaceListAPIView(CustomListAPIView):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['title', ]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.is_authenticated:
+            if self.request.user.is_staff:
+                return queryset
+            return queryset.filter(created_by=self.request.user)
+        else:
+            return queryset.none()
+
 
 class GetWorkspaceDetailsAPIView(CustomRetrieveAPIView):
     queryset = WorkspaceModel.objects.filter(is_active=True, is_deleted=False)
@@ -27,7 +36,7 @@ class GetWorkspaceDetailsAPIView(CustomRetrieveAPIView):
 
         if not requested_user.check_object_permissions(instance):
             return Response({
-                'detail': 'You don\'t have permission to perform this action.'
+                'detail': 'You do not have permission to perform this action'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = WorkspaceModelSerializer.List(instance)

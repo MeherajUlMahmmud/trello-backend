@@ -19,6 +19,13 @@ class BoardModel(BaseModel):
     def __str__(self):
         return self.title + ' - ' + self.project.title
 
+    # def save(self, *args, **kwargs):
+    #     board_list = BoardModel.objects.filter(project=self.project)
+    #
+    #     self.serial = len(board_list) - 1
+    #
+    #     return super().save(*args, **kwargs)
+
 
 class CardModel(BaseModel):
     board = models.ForeignKey(BoardModel, on_delete=models.CASCADE)

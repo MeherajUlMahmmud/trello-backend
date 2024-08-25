@@ -31,7 +31,7 @@ class GetCardDetailsAPIView(CustomRetrieveAPIView):
 
         if not request.user.check_object_permissions(request, instance):
             return Response({
-                'detail': 'You don\'t have permission to perform this action.'
+                'detail': 'You do not have permission to perform this action'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = BoardModelSerializer.List(instance)

@@ -32,3 +32,4 @@ class BoardModelSerializer:
             fields = BoardModelSerializerMeta.Meta.fields + [
                 'id',
             ]
+

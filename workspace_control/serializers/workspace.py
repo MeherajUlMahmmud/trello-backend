@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer, CharField
+
 from workspace_control.models import WorkspaceModel
 
 
@@ -7,7 +8,6 @@ class WorkspaceModelSerializerMeta(ModelSerializer):
         model = WorkspaceModel
         ref_name = 'WorkspaceModelSerializer'
         fields = [
-            'uuid',
             'title',
             'description',
         ]
@@ -17,6 +17,7 @@ class WorkspaceModelSerializer:
     class List(WorkspaceModelSerializerMeta):
         class Meta(WorkspaceModelSerializerMeta.Meta):
             fields = WorkspaceModelSerializerMeta.Meta.fields + [
+                'uuid',
                 'id',
             ]
 
