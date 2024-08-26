@@ -12,7 +12,7 @@ from workspace_control.serializers.project import ProjectModelSerializer
 
 
 class GetProjectListAPIView(CustomListAPIView):
-    queryset = ProjectModel.objects.filter(is_active=True, is_deleted=False).order_by('created_at')
+    queryset = ProjectModel.objects.filter(is_active=True, is_deleted=False)
     serializer_class = ProjectModelSerializer.List
     filter_backends = [SearchFilter, DjangoFilterBackend]
     filterset_class = ProjectModelFilter

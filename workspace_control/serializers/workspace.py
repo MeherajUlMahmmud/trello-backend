@@ -30,9 +30,7 @@ class WorkspaceModelSerializer:
 
     class Write(WorkspaceModelSerializerMeta):
         title = CharField(write_only=True, required=True)
-        description = CharField(write_only=True, required=False)
 
         class Meta(WorkspaceModelSerializerMeta.Meta):
             fields = WorkspaceModelSerializerMeta.Meta.fields + [
-                'id',
             ]

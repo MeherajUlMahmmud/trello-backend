@@ -16,8 +16,9 @@ class GetWorkspaceMemberListAPIView(CustomListAPIView):
     permission_classes = [AdminOrStaffUserPermission]
     serializer_class = WorkspaceMemberModelSerializer.List
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['role', 'workspace__title',
-                     'user__first_name', 'user__last_name']
+    search_fields = [
+        'role', 'workspace__title', 'user__first_name', 'user__last_name',
+    ]
 
 
 class GetWorkspaceMemberDetailsAPIView(CustomRetrieveAPIView):

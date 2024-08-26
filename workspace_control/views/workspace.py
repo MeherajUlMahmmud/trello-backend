@@ -75,11 +75,14 @@ class UpdateWorkspaceDetailsAPIView(CustomUpdateAPIView):
 
         if not requested_user.check_object_permissions(instance):
             return Response({
-                'message': 'You don\'t have permission to perform this action.'
+                'message': 'You do not have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = self.serializer_class(
-            instance, data=request.data, partial=True)
+            instance,
+            data=request.data,
+            partial=True,
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save(
             updated_by=request.user,

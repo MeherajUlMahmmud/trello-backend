@@ -16,6 +16,8 @@ class WorkspaceModel(BaseModel):
         verbose_name = 'Workspace'
         verbose_name_plural = 'Workspaces'
 
+        ordering = ['created_at']
+
     def __str__(self):
         return self.title
 
@@ -41,6 +43,8 @@ class WorkspaceMemberModel(BaseModel):
         verbose_name = 'Workspace Member'
         verbose_name_plural = 'Workspace Members'
 
+        ordering = ['created_at']
+
     def __str__(self):
         return f'{self.workspace.title} - {self.user.email}'
 
@@ -55,6 +59,8 @@ class ProjectModel(BaseModel):
         db_table = 'project'
         verbose_name = 'Project'
         verbose_name_plural = 'Projects'
+
+        ordering = ['created_at']
 
     def __str__(self):
         return self.title

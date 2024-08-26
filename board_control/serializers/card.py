@@ -27,7 +27,6 @@ class CardModelSerializer:
 
     class Write(CardModelSerializerMeta):
         title = CharField(write_only=True, required=True)
-        description = CharField(write_only=True, required=False)
 
         class Meta(CardModelSerializerMeta.Meta):
             fields = CardModelSerializerMeta.Meta.fields + [
