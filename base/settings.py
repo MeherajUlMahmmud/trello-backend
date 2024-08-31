@@ -19,9 +19,13 @@ ENVIRONMENT = config('ENV', default='development')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 MAX_UPLOAD_SIZE = 5242880  # 5MB
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 # Application definition
