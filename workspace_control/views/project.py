@@ -1,14 +1,19 @@
+import logging
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_403_FORBIDDEN
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_403_FORBIDDEN, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 
 from common.custom_view import (
     CustomCreateAPIView, CustomUpdateAPIView, CustomRetrieveAPIView, CustomListAPIView,
 )
 from workspace_control.custom_filters import ProjectModelFilter
 from workspace_control.models import ProjectModel
-from workspace_control.serializers.project import ProjectModelSerializer
+from workspace_control.serializers.project import ProjectModelSerializer, BoardOrderSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class GetProjectListAPIView(CustomListAPIView):
@@ -86,3 +91,22 @@ class UpdateProjectDetailsAPIView(CustomUpdateAPIView):
             updated_by=request.user,
         )
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class UpdateBoardOrderAPIView(APIView):
+    def patch(self, request, uuid):
+        try:
+            data = request.data
+            logger.info("data", data)
+            serializer = BoardOrderSerializer(
+                data=request.data,
+                context={'project_uuid': uuid}
+            )
+            if serializer.is_valid():
+                serializer.update(None, serializer.validated_data)
+                return Response({'message': 'Board order updated successfully.'}, status=HTTP_200_OK)
+
+            logger.error(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Exception: {e}")

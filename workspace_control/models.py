@@ -67,11 +67,11 @@ class ProjectModel(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.uuid:
-            uuid = generate_uuid()
-            exists = ProjectModel.objects.filter(uuid=uuid).exists()
+            project_uuid = generate_uuid()
+            exists = ProjectModel.objects.filter(uuid=project_uuid).exists()
             while exists:
-                uuid = generate_uuid()
-                exists = ProjectModel.objects.filter(uuid=uuid).exists()
-            self.uuid = uuid
+                project_uuid = generate_uuid()
+                exists = ProjectModel.objects.filter(uuid=project_uuid).exists()
+            self.uuid = project_uuid
 
         return super().save(*args, **kwargs)

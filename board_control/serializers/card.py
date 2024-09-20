@@ -20,6 +20,7 @@ class CardModelSerializer:
 
         class Meta(CardModelSerializerMeta.Meta):
             fields = CardModelSerializerMeta.Meta.fields + [
+                'uuid',
                 'id',
                 'description',
                 'serial',
@@ -30,5 +31,4 @@ class CardModelSerializer:
 
         class Meta(CardModelSerializerMeta.Meta):
             fields = CardModelSerializerMeta.Meta.fields + [
-                'id',
             ]

@@ -198,8 +198,9 @@ class LoginAPIView(GenericAPIView):
         :return: HTTP Response object with user data and tokens if successful,
                  otherwise an error message.
         """
+
         logger.info('Entering LoginAPIView...')
-        logger.info(f'User login attempt: {request.data}')
+        logger.info(f'Request data: {request.data}')
 
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)

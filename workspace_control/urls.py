@@ -2,6 +2,7 @@ from django.urls import path
 
 from workspace_control.views.project import (
     GetProjectListAPIView, GetProjectDetailsAPIView, CreateProjectAPIView, UpdateProjectDetailsAPIView,
+    UpdateBoardOrderAPIView,
 )
 from workspace_control.views.workspace import (
     GetWorkspaceListAPIView, GetWorkspaceDetailsAPIView, CreateWorkspaceAPIView, UpdateWorkspaceDetailsAPIView,
@@ -27,4 +28,5 @@ urlpatterns = [
     path('project/create/', CreateProjectAPIView.as_view(), name='project-create'),
     path('project/<str:uuid>/', GetProjectDetailsAPIView.as_view(), name='project-detail'),
     path('project/<int:pk>/update/', UpdateProjectDetailsAPIView.as_view(), name='project-update'),
+    path('project/<str:uuid>/update-board-order/', UpdateBoardOrderAPIView.as_view(), name='update-board-order'),
 ]

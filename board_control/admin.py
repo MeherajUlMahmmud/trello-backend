@@ -7,7 +7,7 @@ from .models import BoardModel, CardModel, CardAssignmentModel
 
 @admin.register(BoardModel)
 class BoardModelAdmin(ImportExportModelAdmin, RawIdFieldsAdmin):
-    list_display = ('title', 'project', 'serial', )
+    list_display = ('uuid', 'title', 'project', 'serial', )
     list_filter = ('project',)
     search_fields = ('title', 'description', 'project__title')
     fieldsets = (
@@ -20,7 +20,7 @@ class BoardModelAdmin(ImportExportModelAdmin, RawIdFieldsAdmin):
 
 @admin.register(CardModel)
 class CardModelAdmin(ImportExportModelAdmin, RawIdFieldsAdmin):
-    list_display = ('title', 'board', 'serial', )
+    list_display = ('uuid', 'title', 'board', 'serial', )
     list_filter = ('board',)
     search_fields = ('title', 'description', 'board__title')
     fieldsets = (

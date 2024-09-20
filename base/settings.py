@@ -20,7 +20,7 @@ ENVIRONMENT = config('ENV', default='development')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 CORS_ORIGIN_ALLOW_ALL = True
-
+SERVER_URL = config('SERVER_URL', default="http://localhost:8000")
 MAX_UPLOAD_SIZE = 5242880  # 5MB
 
 ALLOWED_HOSTS = [

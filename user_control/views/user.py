@@ -1,3 +1,5 @@
+import logging
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -11,6 +13,8 @@ from common.utils import save_picture_to_folder
 from user_control.custom_filters import UserModelFilter
 from user_control.models import UserModel
 from user_control.serializers.user import UserModelSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class GetUserListAPIView(CustomListAPIView):
@@ -27,9 +31,13 @@ class GetUserDetailsAPIView(CustomRetrieveAPIView):
     serializer_class = UserModelSerializer.List
 
     def retrieve(self, request, *args, **kwargs):
+
+        logger.info('Entering GetUserDetailsAPIView...')
+        logger.info(f'Request data: {request.data}')
+
         instance = self.get_object()
         requested_user = request.user
-        if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
+        if not request.user.check_object_permissions(instance) and not requested_user.id == instance.id:
             return Response({
                 'detail': 'You do not have permission to perform this action'
             }, status=HTTP_403_FORBIDDEN)
@@ -44,8 +52,11 @@ class GetUserProfileAPIView(CustomRetrieveAPIView):
     serializer_class = UserModelSerializer.List
 
     def get(self, request, *args, **kwargs):
+
+        logger.info('Entering GetUserProfileAPIView...')
+
         instance = request.user
-        if not request.user.check_object_permissions(request, instance) and not request.user.id == instance.id:
+        if not request.user.check_object_permissions(instance) and not request.user.id == instance.id:
             return Response({
                 'message': 'You don\'t have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)
@@ -85,7 +96,7 @@ class UpdateUserDetailsAPIView(CustomUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         requested_user = request.user
-        if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
+        if not request.user.check_object_permissions(instance) and not requested_user.id == instance.id:
             return Response({
                 'message': 'You don\'t have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)
@@ -106,7 +117,7 @@ class UpdateProfilePictureAPIView(CustomUpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         requested_user = request.user
-        if not request.user.check_object_permissions(request, instance) and not requested_user.id == instance.id:
+        if not request.user.check_object_permissions(instance) and not requested_user.id == instance.id:
             return Response({
                 'message': 'You do not have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)

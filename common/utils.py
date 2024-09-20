@@ -76,7 +76,7 @@ def save_picture_to_folder(picture_file, folder_name):
 
     # Replace the file name with a unique name
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    partial_file_name = file_name.split('.')[0] + '_' + uuid.uuid4()
+    partial_file_name = file_name.split('.')[0] + '_' + str(uuid.uuid4())
     final_file_name = partial_file_name + '_' + timestamp + '.' + extension
 
     # Limit the file name to 100 characters
