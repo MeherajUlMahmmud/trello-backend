@@ -9,16 +9,12 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django.http import HttpResponsePermanentRedirect
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.encoding import smart_bytes, smart_str, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
@@ -32,6 +28,7 @@ from user_control.models import UserModel
 from user_control.serializers.auth import (
     RegisterSerializer, EmailVerificationSerializer, LoginSerializer,
     ResendVerificationEmailSerializer, LogoutSerializer, ResetPasswordRequestSerializer, SetNewPasswordSerializer,
+    PasswordChangeSerializer,
 )
 from user_control.serializers.user import UserModelSerializer
 from user_control.utils import Util
@@ -49,8 +46,12 @@ class RegisterAPIView(GenericAPIView):
 
     @transaction.atomic
     def post(self, request):
+
+        data = request.data
+        logger.info(f'Request data: {data}')
+
         try:
-            serializer = self.serializer_class(data=request.data)
+            serializer = self.serializer_class(data=data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
 
@@ -162,7 +163,7 @@ class ResendVerificationEmailAPIView(APIView):
         current_site = get_current_site(request).domain
         relative_link = reverse('verify-email')
         abs_url = 'http://' + current_site + \
-            relative_link + "?token=" + str(token)
+                  relative_link + "?token=" + str(token)
 
         email_subject = 'Verify your email'
         email_body = "Hi " + name + ",\nUse this link to verify your email:\n" + abs_url
@@ -200,9 +201,11 @@ class LoginAPIView(GenericAPIView):
         """
 
         logger.info('Entering LoginAPIView...')
-        logger.info(f'Request data: {request.data}')
 
-        serializer = self.serializer_class(data=request.data)
+        data = request.data
+        logger.info(f'Request data: {data}')
+
+        serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         logger.info(f'User login serializer data: {serializer.validated_data}')
 
@@ -243,17 +246,31 @@ class LogoutAPIView(GenericAPIView):
 
 class PasswordChangeAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = SetNewPasswordSerializer
+    serializer_class = PasswordChangeSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        logger.info('Entering PasswordChangeAPIView...')
+
+        data = request.data
+        logger.info(f'Request data: {data}')
+
         user = request.user
-        user.set_password(serializer.validated_data['password1'])
-        user.save()
-        return Response({
-            'detail': 'Password changed successfully',
-        }, status=HTTP_200_OK)
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['password1'])
+            user.save()
+            logger.info(f'Password changed successfully for user {user.email}')
+            return Response({
+                'detail': 'Password changed successfully',
+            }, status=HTTP_200_OK)
+        else:
+            print(serializer.errors)
+            # get the first serializer error
+            error = next(iter(serializer.errors.values()))[0]
+            return Response({
+                'detail': error,
+            }, status=HTTP_400_BAD_REQUEST)
 
 
 class RequestPasswordResetAPIView(GenericAPIView):

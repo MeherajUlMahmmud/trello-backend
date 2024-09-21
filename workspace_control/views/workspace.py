@@ -1,13 +1,18 @@
+import logging
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_403_FORBIDDEN
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from common.custom_view import (
     CustomCreateAPIView, CustomUpdateAPIView, CustomRetrieveAPIView, CustomListAPIView,
 )
+from common.utils import save_picture_to_folder
 from workspace_control.models import WorkspaceModel
 from workspace_control.serializers.workspace import WorkspaceModelSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class GetWorkspaceListAPIView(CustomListAPIView):
@@ -51,18 +56,30 @@ class CreateWorkspaceAPIView(CustomCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
 
-        workspace = WorkspaceModel.objects.create(
-            created_by=request.user,
-            **validated_data
-        )
-        workspace.save()
+            image = request.FILES.get('image')
+            if image is not None:
+                image_path = save_picture_to_folder(image, 'workspace_images')
+                serializer.validated_data['image'] = image_path
 
+            workspace = WorkspaceModel.objects.create(
+                created_by=request.user,
+                **validated_data
+            )
+            workspace.save()
+
+            return Response({
+                'detail': 'Workspace created successfully.',
+            }, status=HTTP_201_CREATED)
+
+        logger.error(serializer.errors)
+        # get the first serializer error
+        error = next(iter(serializer.errors.values()))[0]
         return Response({
-            'message': 'Workspace created successfully.',
-        }, status=HTTP_201_CREATED)
+            'detail': error,
+        }, status=HTTP_400_BAD_REQUEST)
 
 
 class UpdateWorkspaceDetailsAPIView(CustomUpdateAPIView):
@@ -75,7 +92,7 @@ class UpdateWorkspaceDetailsAPIView(CustomUpdateAPIView):
 
         if not requested_user.check_object_permissions(instance):
             return Response({
-                'message': 'You do not have permission to perform this action.'
+                'detail': 'You do not have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = self.serializer_class(
@@ -83,8 +100,23 @@ class UpdateWorkspaceDetailsAPIView(CustomUpdateAPIView):
             data=request.data,
             partial=True,
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(
-            updated_by=request.user,
-        )
-        return Response(serializer.data, status=HTTP_200_OK)
+        if serializer.is_valid():
+            image = request.FILES.get('image')
+            if image is not None:
+                image_path = save_picture_to_folder(image, 'workspace_images')
+                serializer.validated_data['image'] = image_path
+
+            workspace = serializer.save(
+                updated_by=request.user,
+            )
+            serialized_workspace = WorkspaceModelSerializer.List(workspace, many=False)
+            return Response({
+                'data': serialized_workspace.data,
+            }, status=HTTP_200_OK)
+
+        logger.error(serializer.errors)
+        # get the first serializer error
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({
+            'detail': error,
+        }, status=HTTP_400_BAD_REQUEST)

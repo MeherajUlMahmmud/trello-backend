@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from common.custom_view import (
     CustomCreateAPIView, CustomUpdateAPIView, CustomRetrieveAPIView, CustomListAPIView,
 )
+from common.utils import save_picture_to_folder
 from workspace_control.custom_filters import ProjectModelFilter
 from workspace_control.models import ProjectModel
 from workspace_control.serializers.project import ProjectModelSerializer, BoardOrderSerializer
@@ -48,7 +49,9 @@ class GetProjectDetailsAPIView(CustomRetrieveAPIView):
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = ProjectModelSerializer.List(instance)
-        return Response(serializer.data, status=HTTP_200_OK)
+        return Response({
+            'data': serializer.data,
+        }, status=HTTP_200_OK)
 
 
 class CreateProjectAPIView(CustomCreateAPIView):
@@ -56,20 +59,26 @@ class CreateProjectAPIView(CustomCreateAPIView):
     serializer_class = ProjectModelSerializer.Write
 
     def post(self, request, *args, **kwargs):
-        print(f'data: {request.data}')
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
 
-        project = ProjectModel.objects.create(
-            created_by=request.user,
-            **validated_data
-        )
-        project.save()
+            project = ProjectModel.objects.create(
+                created_by=request.user,
+                **validated_data
+            )
+            project.save()
 
+            return Response({
+                'detail': 'Project created successfully.',
+            }, status=HTTP_201_CREATED)
+
+        logger.error(serializer.errors)
+        # get the first serializer error
+        error = next(iter(serializer.errors.values()))[0]
         return Response({
-            'message': 'Project created successfully.',
-        }, status=HTTP_201_CREATED)
+            'detail': error,
+        }, status=HTTP_400_BAD_REQUEST)
 
 
 class UpdateProjectDetailsAPIView(CustomUpdateAPIView):
@@ -79,34 +88,56 @@ class UpdateProjectDetailsAPIView(CustomUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         requested_user = request.user
+
         if not requested_user.check_object_permissions(instance):
             return Response({
-                'message': 'You don\'t have permission to perform this action.'
+                'detail': 'You don\'t have permission to perform this action.'
             }, status=HTTP_403_FORBIDDEN)
 
         serializer = self.serializer_class(
-            instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(
-            updated_by=request.user,
+            instance,
+            data=request.data,
+            partial=True,
         )
-        return Response(serializer.data, status=HTTP_200_OK)
+        if serializer.is_valid():
+            image = request.FILES.get('image')
+            if image is not None:
+                image_path = save_picture_to_folder(image, 'workspace_images')
+                serializer.validated_data['image'] = image_path
+
+            project = serializer.save(
+                updated_by=request.user,
+            )
+            serialized_project = ProjectModelSerializer.List(project, many=False)
+            return Response({
+                'data': serialized_project.data,
+            }, status=HTTP_200_OK)
+
+        logger.error(serializer.errors)
+        # get the first serializer error
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({
+            'detail': error,
+        }, status=HTTP_400_BAD_REQUEST)
 
 
 class UpdateBoardOrderAPIView(APIView):
     def patch(self, request, uuid):
-        try:
-            data = request.data
-            logger.info("data", data)
-            serializer = BoardOrderSerializer(
-                data=request.data,
-                context={'project_uuid': uuid}
-            )
-            if serializer.is_valid():
-                serializer.update(None, serializer.validated_data)
-                return Response({'message': 'Board order updated successfully.'}, status=HTTP_200_OK)
+        data = request.data
+        logger.info("data", data)
+        serializer = BoardOrderSerializer(
+            data=request.data,
+            context={'project_uuid': uuid}
+        )
+        if serializer.is_valid():
+            serializer.update(None, serializer.validated_data)
+            return Response({
+                'detail': 'Board order updated successfully.',
+            }, status=HTTP_200_OK)
 
-            logger.error(serializer.errors)
-            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.error(f"Exception: {e}")
+        logger.error(serializer.errors)
+        # get the first serializer error
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({
+            'detail': error,
+        }, status=HTTP_400_BAD_REQUEST)

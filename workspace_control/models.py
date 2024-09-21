@@ -10,6 +10,7 @@ class WorkspaceModel(BaseModel):
     uuid = models.CharField(max_length=255, unique=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    image = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'workspace'
@@ -54,6 +55,7 @@ class ProjectModel(BaseModel):
     workspace = models.ForeignKey(WorkspaceModel, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    image = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'project'

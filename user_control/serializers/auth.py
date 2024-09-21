@@ -83,11 +83,35 @@ class LoginSerializer(Serializer):
             raise ValidationError(msg)
 
 
-class GoogleLoginSerializer(Serializer):
-    email = EmailField(max_length=255, min_length=3, required=True)
-    first_name = CharField(max_length=255, min_length=3, required=True)
-    last_name = CharField(max_length=255, min_length=3, required=True)
-    profile_picture = CharField(max_length=255, required=False)
+class PasswordChangeSerializer(Serializer):
+    email = EmailField(max_length=255, min_length=3)
+    current_password = CharField(min_length=6, max_length=68, write_only=True)
+    password1 = CharField(min_length=6, max_length=68, write_only=True)
+    password2 = CharField(min_length=6, max_length=68, write_only=True)
+
+    class Meta:
+        fields = [
+            'email',
+            'current_password',
+            'password1',
+            'password2',
+        ]
+
+    def validate(self, attrs):
+        email = attrs.get("email", "")
+        current_password = attrs.get("current_password", "")
+        password1 = attrs.get('password1')
+        password2 = attrs.get('password2')
+
+        if email and current_password:
+            user = authenticate(email=email, password=current_password)
+
+            if not user:
+                raise AuthenticationFailed('Invalid credentials, try again')
+
+        if password1 != password2:
+            raise ValidationError('Passwords do not match')
+        return attrs
 
 
 class ResetPasswordRequestSerializer(Serializer):
@@ -112,6 +136,7 @@ class SetNewPasswordSerializer(Serializer):
     def validate(self, attrs):
         password1 = attrs.get('password1')
         password2 = attrs.get('password2')
+
         if password1 != password2:
             raise ValidationError('Passwords do not match')
         return attrs
