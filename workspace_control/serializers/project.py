@@ -24,7 +24,7 @@ class ProjectModelSerializer:
             fields = ProjectModelSerializerMeta.Meta.fields + [
                 'uuid',
                 'id',
-                'description',
+                'image',
             ]
 
     class Write(ProjectModelSerializerMeta):
